@@ -8,12 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: Kitty_Pajamas_Joy_0216132212_texture_Material_001
-    second: {fileID: 2100000, guid: 07650cc79299805448156b566d9e9b7e, type: 2}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Kitty_Pajamas_Joy_0216132212_texture
-    second: {fileID: 2800000, guid: 36a7f0641d1fa01478df696defdf96d9, type: 3}
+    second: {fileID: 2100000, guid: eb05ba15d8813f741bbf22fabde76608, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
