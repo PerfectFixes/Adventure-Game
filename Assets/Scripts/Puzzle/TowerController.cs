@@ -8,9 +8,6 @@ public class TowerController : MonoBehaviour
     [Tooltip("List of all towers/deflectors that can be controlled")]
     public List<Transform> towers = new List<Transform>();
     
-    [Tooltip("Material to apply to the selected tower")]
-    public Material highlightMaterial;
-    
     [Tooltip("Movement speed of the towers")]
     public float moveSpeed = 1.0f;
     
@@ -19,6 +16,14 @@ public class TowerController : MonoBehaviour
     
     [Tooltip("Maximum Z position of towers")]
     public float maxZPosition = 0.5f;
+    
+    [Header("Outline Settings")]
+    [Tooltip("Outline color for the selected tower")]
+    public Color outlineColor = Color.yellow;
+    
+    [Tooltip("Outline width for the selected tower")]
+    [Range(0f, 10f)]
+    public float outlineWidth = 5f;
     
     [Header("Input Settings")]
     [Tooltip("Reference to an Input Action asset with Move and Select actions")]
@@ -34,27 +39,37 @@ public class TowerController : MonoBehaviour
     // Movement value
     private float verticalInput = 0f;
     
-    // Store original materials for each tower
-    private Dictionary<Transform, Material> originalMaterials = new Dictionary<Transform, Material>();
+    // Store monobehaviours for each tower that handle outlines
+    private Dictionary<Transform, MonoBehaviour> towerOutlines = new Dictionary<Transform, MonoBehaviour>();
     
     private void Awake()
     {
-        // Store original materials and set all towers to starting position
+        // Set all towers to starting position and set up outlines
         foreach (Transform tower in towers)
         {
             if (tower != null)
             {
-                // Store the original material
-                Renderer renderer = tower.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    originalMaterials[tower] = renderer.material;
-                }
-                
                 // Set starting Z position
                 Vector3 startPosition = tower.position;
                 startPosition.z = minZPosition;
                 tower.position = startPosition;
+                
+                // Try to find an Outline component (from Quick Outline package)
+                MonoBehaviour outlineComponent = FindOutlineComponent(tower.gameObject);
+                
+                if (outlineComponent != null)
+                {
+                    // Store the outline component
+                    towerOutlines[tower] = outlineComponent;
+                    
+                    // Configure and disable initially
+                    SetOutlineProperties(outlineComponent, outlineColor, outlineWidth);
+                    EnableOutline(outlineComponent, false);
+                }
+                else
+                {
+                    Debug.LogWarning("No Outline component found on " + tower.name + ". Make sure you've added the Quick Outline component to this object.");
+                }
             }
         }
         
@@ -95,7 +110,82 @@ public class TowerController : MonoBehaviour
         if (towers.Count > 0)
         {
             currentTowerIndex = 0;
-            UpdateTowerHighlight();
+            UpdateTowerOutline();
+        }
+    }
+    
+    // Helper method to find any Outline component on the given game object
+    private MonoBehaviour FindOutlineComponent(GameObject obj)
+    {
+        // Try to find a component named "Outline" using GetComponents
+        MonoBehaviour[] components = obj.GetComponents<MonoBehaviour>();
+        foreach (MonoBehaviour component in components)
+        {
+            if (component.GetType().Name == "Outline")
+            {
+                return component;
+            }
+        }
+        
+        // If no Outline component found, try to add one
+        // Note: This will only work if Quick Outline is properly imported
+        try
+        {
+            // Use reflection to create the component without direct reference
+            System.Type outlineType = System.Type.GetType("Outline, Assembly-CSharp");
+            if (outlineType != null)
+            {
+                return obj.AddComponent(outlineType) as MonoBehaviour;
+            }
+            else
+            {
+                // Try alternative namespace
+                outlineType = System.Type.GetType("QuickOutline.Outline, Assembly-CSharp");
+                if (outlineType != null)
+                {
+                    return obj.AddComponent(outlineType) as MonoBehaviour;
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Error adding Outline component: " + e.Message);
+        }
+        
+        return null;
+    }
+    
+    // Helper method to set outline properties using reflection (works with any Quick Outline implementation)
+    private void SetOutlineProperties(MonoBehaviour outline, Color color, float width)
+    {
+        try
+        {
+            // Use reflection to set properties without direct reference
+            System.Reflection.PropertyInfo colorProperty = outline.GetType().GetProperty("OutlineColor");
+            System.Reflection.PropertyInfo widthProperty = outline.GetType().GetProperty("OutlineWidth");
+            
+            if (colorProperty != null)
+            {
+                colorProperty.SetValue(outline, color);
+            }
+            
+            if (widthProperty != null)
+            {
+                widthProperty.SetValue(outline, width);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Error setting outline properties: " + e.Message);
+        }
+    }
+    
+    // Helper method to enable/disable the outline
+    private void EnableOutline(MonoBehaviour outline, bool enabled)
+    {
+        if (outline != null)
+        {
+            outline.enabled = enabled;
         }
     }
     
@@ -179,18 +269,18 @@ public class TowerController : MonoBehaviour
             // If at rightmost tower and press right, do nothing
         }
         
-        // Only update materials if the selected tower actually changed
+        // Only update outlines if the selected tower actually changed
         if (previousIndex != currentTowerIndex)
         {
-            // Reset material on the previously selected tower
+            // Disable outline on the previously selected tower
             if (previousIndex >= 0 && previousIndex < towers.Count)
             {
                 Transform previousTower = towers[previousIndex];
-                RestoreOriginalMaterial(previousTower);
+                DisableTowerOutline(previousTower);
             }
             
-            // Update the tower material highlight
-            UpdateTowerHighlight();
+            // Update the tower outline
+            UpdateTowerOutline();
         }
     }
     
@@ -220,33 +310,33 @@ public class TowerController : MonoBehaviour
         }
     }
     
-    private void UpdateTowerHighlight()
+    private void UpdateTowerOutline()
     {
         if (towers.Count > 0 && currentTowerIndex >= 0 && currentTowerIndex < towers.Count)
         {
             Transform currentTower = towers[currentTowerIndex];
             
-            if (currentTower != null && highlightMaterial != null)
+            if (currentTower != null && towerOutlines.ContainsKey(currentTower))
             {
-                // Apply highlight material to the selected tower
-                Renderer renderer = currentTower.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    renderer.material = highlightMaterial;
-                }
+                // Get the outline component
+                MonoBehaviour outline = towerOutlines[currentTower];
+                
+                // Update outline properties in case they were changed in the Inspector
+                SetOutlineProperties(outline, outlineColor, outlineWidth);
+                
+                // Enable the outline
+                EnableOutline(outline, true);
             }
         }
     }
     
-    private void RestoreOriginalMaterial(Transform tower)
+    private void DisableTowerOutline(Transform tower)
     {
-        if (tower != null && originalMaterials.ContainsKey(tower))
+        if (tower != null && towerOutlines.ContainsKey(tower))
         {
-            Renderer renderer = tower.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.material = originalMaterials[tower];
-            }
+            // Disable the outline component
+            MonoBehaviour outline = towerOutlines[tower];
+            EnableOutline(outline, false);
         }
     }
     
@@ -263,10 +353,10 @@ public class TowerController : MonoBehaviour
         if (moveAction != null) moveAction.Disable();
         if (selectAction != null) selectAction.Disable();
         
-        // Restore all tower materials
+        // Disable all outlines
         foreach (Transform tower in towers)
         {
-            RestoreOriginalMaterial(tower);
+            DisableTowerOutline(tower);
         }
     }
     
@@ -284,10 +374,10 @@ public class TowerController : MonoBehaviour
             selectAction.performed -= OnSelect;
         }
         
-        // Restore all tower materials
+        // Disable all outlines
         foreach (Transform tower in towers)
         {
-            RestoreOriginalMaterial(tower);
+            DisableTowerOutline(tower);
         }
     }
 }

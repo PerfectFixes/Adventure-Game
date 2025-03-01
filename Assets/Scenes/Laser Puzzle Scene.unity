@@ -7105,10 +7105,11 @@ MonoBehaviour:
   - {fileID: 903881441}
   - {fileID: 2121669774}
   - {fileID: 1416759613}
-  highlightMaterial: {fileID: 2100000, guid: 4b3ace4e34a5d384e9ebf69734a97814, type: 2}
   moveSpeed: 1
   minZPosition: -0.5
   maxZPosition: 0.5
+  outlineColor: {r: 0.8437211, g: 0.2358489, b: 1, a: 1}
+  outlineWidth: 5
   inputActions: {fileID: -944628639613478452, guid: 942371532bae5a74285cc12db7fe6a89, type: 3}
 --- !u!1 &2110916161
 GameObject:
