@@ -1,40 +1,64 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using StarterAssets;
-using System.Collections.Generic;
+using System.Collections;
 
 public class DoorInteraction : MonoBehaviour
 {
     [Header("Interaction Settings")]
-    [SerializeField] private float interactionDistance = 2.0f;
-    [SerializeField] private LayerMask doorLayer;
-    [SerializeField] private Transform playerCamera;
-    
-    // Reference to the Input System
     [SerializeField] private InputActionReference interactAction;
+    [SerializeField] private Canvas interactionCanvas;
     
-    // Cache for doors that have been opened
-    private HashSet<int> openedDoors = new HashSet<int>();
+    // References
+    [SerializeField] private Animator doorAnimator; // Can be assigned in inspector if needed
     
-    // Current interaction state
-    private Animator currentDoorAnimator;
-    private Canvas currentDoorCanvas;
-    private GameObject currentDoorObject;
-    private bool canInteract = false;
+    // State tracking
+    private bool playerInRange = false;
+    private bool isDoorOpen = false;
     
-    // Cache for found canvases to avoid GetComponent calls
-    private Dictionary<int, Canvas> doorCanvasCache = new Dictionary<int, Canvas>();
-
     private void Awake()
     {
-        if (playerCamera == null)
+        // Find animator if not already assigned
+        if (doorAnimator == null)
         {
-            playerCamera = Camera.main.transform;
+            // First try to get the animator on this GameObject
+            doorAnimator = GetComponent<Animator>();
+            
+            // If not found, check the parent GameObject
+            if (doorAnimator == null && transform.parent != null)
+            {
+                doorAnimator = transform.parent.GetComponent<Animator>();
+            }
+            
+            // If still not found, search in children of parent
+            if (doorAnimator == null && transform.parent != null)
+            {
+                doorAnimator = transform.parent.GetComponentInChildren<Animator>(true);
+            }
+            
+            // Log a warning if animator still not found
+            if (doorAnimator == null)
+            {
+                Debug.LogWarning($"No Animator found for door {gameObject.name}. Please assign one in the inspector or add to parent.");
+            }
+        }
+        
+        // If no canvas is assigned in the inspector, try to find it
+        if (interactionCanvas == null)
+        {
+            // Check if there's a Canvas as a child
+            interactionCanvas = GetComponentInChildren<Canvas>(true);
+        }
+        
+        // Ensure canvas is disabled at start
+        if (interactionCanvas != null)
+        {
+            interactionCanvas.gameObject.SetActive(false);
         }
     }
 
     private void OnEnable()
     {
+        // Enable the input action
         if (interactAction != null)
         {
             interactAction.action.Enable();
@@ -44,136 +68,89 @@ public class DoorInteraction : MonoBehaviour
 
     private void OnDisable()
     {
+        // Disable the input action
         if (interactAction != null)
         {
             interactAction.action.performed -= OnInteractPerformed;
-            interactAction.action.Disable();
         }
         
-        HideCurrentDoorCanvas();
-    }
-
-    private void Update()
-    {
-        CheckForDoorInteraction();
-    }
-
-    private void CheckForDoorInteraction()
-    {
-        // Hide current canvas first to prevent overlapping UI
-        if (currentDoorObject != null)
+        // Hide the canvas when disabled
+        if (interactionCanvas != null)
         {
-            HideCurrentDoorCanvas();
-            currentDoorAnimator = null;
-            currentDoorObject = null;
-            canInteract = false;
+            interactionCanvas.gameObject.SetActive(false);
         }
+    }
 
-        // Cast a ray to detect doors
-        RaycastHit hit;
-        if (Physics.Raycast(playerCamera.position, playerCamera.forward, out hit, interactionDistance, doorLayer))
+    private void OnTriggerEnter(Collider other)
+    {
+        // Check if it's the player entering the trigger
+        if (other.CompareTag("Player"))
         {
-            GameObject doorObject = hit.collider.gameObject;
-            int doorID = doorObject.GetInstanceID();
+            playerInRange = true;
             
-            // Skip already opened doors
-            if (openedDoors.Contains(doorID))
+            // Only show interaction canvas if the door isn't open yet
+            if (!isDoorOpen && interactionCanvas != null)
             {
-                return;
-            }
-            
-            // Get door animator
-            Animator doorAnimator = doorObject.GetComponent<Animator>();
-            if (doorAnimator == null)
-            {
-                return;
-            }
-            
-            // Store references
-            currentDoorAnimator = doorAnimator;
-            currentDoorObject = doorObject;
-            canInteract = true;
-            
-            // Get canvas - check cache first to avoid GetComponent calls
-            if (!doorCanvasCache.TryGetValue(doorID, out currentDoorCanvas))
-            {
-                // Check door object first
-                currentDoorCanvas = doorObject.GetComponent<Canvas>();
-                
-                // If not found, check children but only if needed
-                if (currentDoorCanvas == null)
-                {
-                    // Use GetComponentInChildren only when necessary as it's expensive
-                    Transform canvasTransform = doorObject.transform.Find("Canvas");
-                    if (canvasTransform != null)
-                    {
-                        currentDoorCanvas = canvasTransform.GetComponent<Canvas>();
-                    }
-                    
-                    // If still not found, do the more expensive full search
-                    if (currentDoorCanvas == null)
-                    {
-                        currentDoorCanvas = doorObject.GetComponentInChildren<Canvas>(true);
-                    }
-                }
-                
-                // Cache the result whether found or not
-                doorCanvasCache[doorID] = currentDoorCanvas;
-            }
-            
-            // Show the canvas if found
-            if (currentDoorCanvas != null)
-            {
-                currentDoorCanvas.gameObject.SetActive(true);
+                interactionCanvas.gameObject.SetActive(true);
             }
         }
     }
 
-    private void HideCurrentDoorCanvas()
+    private void OnTriggerExit(Collider other)
     {
-        if (currentDoorCanvas != null && currentDoorCanvas.gameObject.activeSelf)
+        // Check if it's the player leaving the trigger
+        if (other.CompareTag("Player"))
         {
-            currentDoorCanvas.gameObject.SetActive(false);
+            playerInRange = false;
+            
+            // Hide interaction canvas when player leaves
+            if (interactionCanvas != null)
+            {
+                interactionCanvas.gameObject.SetActive(false);
+            }
         }
     }
 
     private void OnInteractPerformed(InputAction.CallbackContext context)
     {
-        if (!canInteract || currentDoorAnimator == null || currentDoorObject == null)
+        // Only handle interaction if player is in range and door isn't already open
+        if (playerInRange && !isDoorOpen)
         {
-            return;
-        }
-        
-        // Trigger the door animation
-        currentDoorAnimator.SetTrigger("OpenDoor");
-        
-        // Add to opened doors set
-        int doorID = currentDoorObject.GetInstanceID();
-        openedDoors.Add(doorID);
-        
-        // Hide the canvas immediately
-        HideCurrentDoorCanvas();
-        
-        // Reset current door references
-        currentDoorAnimator = null;
-        currentDoorObject = null;
-        canInteract = false;
-    }
-
-    // Animation Event Handler - can be called from the door's animation
-    public void OnDoorFullyOpened(AnimationEvent evt)
-    {
-        // If this method is called from animation events, you can
-        // add additional cleanup or state changes here
-    }
-    
-    // Optional: Reset a specific door to be interactable again (for cases where doors can be closed)
-    public void ResetDoorInteractability(GameObject doorObject)
-    {
-        if (doorObject != null)
-        {
-            openedDoors.Remove(doorObject.GetInstanceID());
+            OpenDoor();
         }
     }
 
+    private void OpenDoor()
+    {
+        // Trigger the animation
+        if (doorAnimator != null)
+        {
+            doorAnimator.SetTrigger("OpenDoor");
+            isDoorOpen = true;
+            
+            // Hide the interaction canvas
+            if (interactionCanvas != null)
+            {
+                interactionCanvas.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    // Called by animation event when door is fully opened if needed
+    public void OnDoorFullyOpened()
+    {
+        // Additional functionality can be added here
+    }
+
+    // Public method to reset door state if needed (e.g., for doors that can close)
+    public void ResetDoor()
+    {
+        isDoorOpen = false;
+        
+        // Show interaction canvas if player is still in range
+        if (playerInRange && interactionCanvas != null)
+        {
+            interactionCanvas.gameObject.SetActive(true);
+        }
+    }
 }
