@@ -594,7 +594,7 @@ GameObject:
   - component: {fileID: 163864760}
   - component: {fileID: 163864759}
   m_Layer: 7
-  m_Name: GFX (1)
+  m_Name: Deflector 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -674,7 +674,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 118fd835719d69245b3663538745acf1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1836,7 +1836,7 @@ GameObject:
   - component: {fileID: 663877123}
   - component: {fileID: 663877122}
   m_Layer: 7
-  m_Name: GFX (2)
+  m_Name: Deflector 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1916,7 +1916,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 118fd835719d69245b3663538745acf1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2716,7 +2716,7 @@ GameObject:
   - component: {fileID: 903881443}
   - component: {fileID: 903881442}
   m_Layer: 7
-  m_Name: GFX (4)
+  m_Name: Deflector 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2796,7 +2796,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 118fd835719d69245b3663538745acf1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3939,7 +3939,7 @@ GameObject:
   - component: {fileID: 1208261059}
   - component: {fileID: 1208261058}
   m_Layer: 7
-  m_Name: GFX
+  m_Name: Deflector 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4019,7 +4019,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 118fd835719d69245b3663538745acf1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -4311,7 +4311,7 @@ GameObject:
   - component: {fileID: 1416759615}
   - component: {fileID: 1416759614}
   m_Layer: 7
-  m_Name: GFX (6)
+  m_Name: Deflector 7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4391,7 +4391,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 118fd835719d69245b3663538745acf1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5640,7 +5640,7 @@ GameObject:
   - component: {fileID: 1755734247}
   - component: {fileID: 1755734246}
   m_Layer: 7
-  m_Name: GFX (3)
+  m_Name: Deflector 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5720,7 +5720,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 118fd835719d69245b3663538745acf1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7055,6 +7055,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2064264800}
+  - component: {fileID: 2064264801}
   m_Layer: 7
   m_Name: Tower Deflector
   m_TagString: Untagged
@@ -7084,6 +7085,31 @@ Transform:
   - {fileID: 1416759613}
   m_Father: {fileID: 1179804353}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2064264801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2064264799}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70b36efcf354dea40b78db7804f91de7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  towers:
+  - {fileID: 1208261057}
+  - {fileID: 163864758}
+  - {fileID: 663877121}
+  - {fileID: 1755734245}
+  - {fileID: 903881441}
+  - {fileID: 2121669774}
+  - {fileID: 1416759613}
+  highlightMaterial: {fileID: 2100000, guid: 4b3ace4e34a5d384e9ebf69734a97814, type: 2}
+  moveSpeed: 1
+  minZPosition: -0.5
+  maxZPosition: 0.5
+  inputActions: {fileID: -944628639613478452, guid: 942371532bae5a74285cc12db7fe6a89, type: 3}
 --- !u!1 &2110916161
 GameObject:
   m_ObjectHideFlags: 0
@@ -7206,7 +7232,7 @@ GameObject:
   - component: {fileID: 2121669776}
   - component: {fileID: 2121669775}
   m_Layer: 7
-  m_Name: GFX (5)
+  m_Name: Deflector 6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7286,7 +7312,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 118fd835719d69245b3663538745acf1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
