@@ -13,9 +13,6 @@ public class LaserEmitter : MonoBehaviour
     [Tooltip("The width of the laser beam")]
     public float laserWidth = 0.1f;
     
-    [Tooltip("The color of the laser beam")]
-    public Color laserColor = Color.red;
-    
     [Tooltip("Maximum number of deflections allowed")]
     public int maxDeflections = 10;
     
@@ -40,11 +37,8 @@ public class LaserEmitter : MonoBehaviour
     [Tooltip("Prefab to use for laser segments (cube recommended)")]
     public GameObject laserSegmentPrefab;
     
-    [Tooltip("Material to apply to the laser prefabs")]
-    public Material laserMaterial;
-    
-    [Tooltip("ScriptableObject for advanced laser material settings (optional)")]
-    public LaserMaterial laserMaterialSettings;
+    [Tooltip("Default material for the laser")]
+    public Material defaultLaserMaterial;
     
     // Runtime variables
     private List<Vector3> hitPoints = new List<Vector3>();
@@ -58,6 +52,9 @@ public class LaserEmitter : MonoBehaviour
     private List<LaserDeflector> hitDeflectors = new List<LaserDeflector>();
     private int totalDeflectorsInScene = 0;
     
+    // Each segment needs its own material
+    private List<Material> segmentMaterials = new List<Material>();
+    
     private void Awake()
     {
         // Create a parent object for all laser segments
@@ -69,6 +66,16 @@ public class LaserEmitter : MonoBehaviour
         // Count the total number of deflectors in the scene
         totalDeflectorsInScene = FindObjectsOfType<LaserDeflector>().Length;
         Debug.Log("Found " + totalDeflectorsInScene + " deflectors in the scene.");
+        
+        // Check if we have a default material
+        if (defaultLaserMaterial == null)
+        {
+            Debug.LogWarning("No default laser material assigned. Creating a basic emissive material.");
+            defaultLaserMaterial = new Material(Shader.Find("Standard"));
+            defaultLaserMaterial.EnableKeyword("_EMISSION");
+            defaultLaserMaterial.SetColor("_Color", Color.red);
+            defaultLaserMaterial.SetColor("_EmissionColor", Color.red * 2f);
+        }
     }
     
     private void Start()
@@ -158,7 +165,8 @@ public class LaserEmitter : MonoBehaviour
         }
         laserSegments.Clear();
         hitPoints.Clear();
-        hitDeflectors.Clear(); // Clear the list of hit deflectors when laser turns off
+        hitDeflectors.Clear();
+        segmentMaterials.Clear();
     }
     
     /// <summary>
@@ -188,34 +196,26 @@ public class LaserEmitter : MonoBehaviour
     /// </summary>
     private void UpdateLaserPath()
     {
-        // Clear previous hit points and tracking data
-        hitPoints.Clear();
-        hitDeflectors.Clear();
-        
-        // Clean up previous laser segments
-        foreach (GameObject segment in laserSegments)
-        {
-            Destroy(segment);
-        }
-        laserSegments.Clear();
+        // Clear everything first
+        DeactivateLaser();
         
         // If the laser is not active, don't create new segments
-        if (!isLaserActive)
-        {
-            return;
-        }
+        if (!isLaserActive) return;
         
-        // Start position is at the cylinder's position
+        // Start position is at the emitter's position
         Vector3 currentPosition = transform.position;
         Vector3 currentDirection = transform.forward;
         
         // Add initial position
         hitPoints.Add(currentPosition);
         
+        // Current material starts with default
+        Material currentMaterial = defaultLaserMaterial;
+        
         // Track deflections
         int deflectionCount = 0;
         
-        // Cast the laser and handle deflections
+        // Cast the laser and handle deflections - this loop builds the path points
         while (deflectionCount < maxDeflections)
         {
             // Cast a ray from current position in current direction
@@ -228,7 +228,7 @@ public class LaserEmitter : MonoBehaviour
                 LaserDeflector deflector = hit.collider.GetComponent<LaserDeflector>();
                 if (deflector != null)
                 {
-                    // Add this deflector to our hit list if not already included
+                    // Track this deflector
                     if (!hitDeflectors.Contains(deflector))
                     {
                         hitDeflectors.Add(deflector);
@@ -237,48 +237,53 @@ public class LaserEmitter : MonoBehaviour
                     // Get the exit direction from the deflector
                     Vector3 exitDirection = deflector.GetExitDirection();
                     
-                    // We want the laser to visibly change direction at the center of the tower
+                    // Get center point of the deflector
                     Vector3 towerCenter = deflector.transform.position;
                     
-                    // Add the center point to make the laser path go through the center of the tower
+                    // Add the center point
                     hitPoints.Add(towerCenter);
                     
-                    // Find the far side of the collider in the exit direction
+                    // See if this deflector changes the material
+                    Material deflectorMaterial = deflector.GetLaserMaterial();
+                    if (deflectorMaterial != null)
+                    {
+                        // Update current material for future segments
+                        currentMaterial = deflectorMaterial;
+                        //Debug.Log($"Deflector {deflector.name} is changing material to {deflectorMaterial.name}");
+                    }
+                    
+                    // Calculate where laser exits the deflector
                     Ray exitRay = new Ray(towerCenter, exitDirection);
                     Vector3 exitPoint;
                     
                     if (hit.collider.Raycast(exitRay, out RaycastHit exitHit, 100f))
                     {
-                        // Use the actual exit point from the raycast
                         exitPoint = exitHit.point;
                     }
                     else
                     {
-                        // If we can't calculate the exit point, use an approximation
                         exitPoint = towerCenter + exitDirection * (hit.collider.bounds.extents.magnitude);
                     }
                     
-                    // Add the exit point
+                    // Add exit point
                     hitPoints.Add(exitPoint);
                     
                     // Update for next segment
-                    currentPosition = exitPoint + exitDirection * 0.01f; // Small offset to avoid re-hitting
+                    currentPosition = exitPoint + exitDirection * 0.01f;
                     currentDirection = exitDirection;
                     
-                    // Increment deflection count
                     deflectionCount++;
                 }
                 else
                 {
-                    // Check if we hit a laser receiver
+                    // Check if we hit a receiver
                     LaserReceiver receiver = hit.collider.GetComponent<LaserReceiver>();
                     if (receiver != null)
                     {
-                        // Notify the receiver that it's been hit, passing our hit deflectors list
                         receiver.ReceiveLaser(hitDeflectors, totalDeflectorsInScene);
                     }
                     
-                    // If we hit something that's not a deflector, we're done
+                    // End the path here
                     break;
                 }
             }
@@ -290,54 +295,58 @@ public class LaserEmitter : MonoBehaviour
             }
         }
         
-        // Create laser segments from the hit points
-        CreateLaserSegments();
-    }
-    
-    /// <summary>
-    /// Create visual laser segments between all hit points
-    /// </summary>
-    private void CreateLaserSegments()
-    {
-        // Create a segment between each pair of points
+        // Now that we have all points, determine what materials to use between each point
+        // We start with the default material
+        currentMaterial = defaultLaserMaterial;
+        
+        // Now create segments between all points - each segment could have a different material
         for (int i = 0; i < hitPoints.Count - 1; i++)
         {
             Vector3 startPoint = hitPoints[i];
-            Vector3 endPoint = hitPoints[i + 1];
+            Vector3 endPoint = hitPoints[i+1];
             
-            // Create a new segment
-            GameObject segment = CreateLaserSegment(startPoint, endPoint);
+            // Check if we're entering or exiting a deflector
+            bool isExitingDeflector = false;
+            
+            // Check if this segment is exiting from a deflector center (i.e., if the start point matches a deflector position)
+            foreach (LaserDeflector deflector in hitDeflectors)
+            {
+                if (Vector3.Distance(startPoint, deflector.transform.position) < 0.01f)
+                {
+                    // This segment is exiting a deflector
+                    isExitingDeflector = true;
+                    
+                    // Check if this deflector has a material
+                    Material deflectorMaterial = deflector.GetLaserMaterial();
+                    if (deflectorMaterial != null)
+                    {
+                        // Use the deflector's material for this segment
+                        currentMaterial = deflectorMaterial;
+                            //Debug.Log($"Segment {i} is exiting deflector {deflector.name}, using material {deflectorMaterial.name}");
+                    }
+                    break;
+                }
+            }
+            
+            // If not exiting a deflector, we keep using the current material
+            if (!isExitingDeflector)
+            {
+                //Debug.Log($"Segment {i} is using current material {currentMaterial?.name ?? "null"}");
+            }
+            
+            // Create the segment with the appropriate material
+            GameObject segment = CreateLaserSegment(startPoint, endPoint, currentMaterial);
             laserSegments.Add(segment);
+            
+            // Store the material we used
+            segmentMaterials.Add(currentMaterial);
         }
     }
     
     /// <summary>
-    /// Calculate the current width of the laser based on how long it has been active
+    /// Create a single laser segment between two points with specified material
     /// </summary>
-    /// <returns>The current width to use for the laser</returns>
-    private float CalculateCurrentLaserWidth()
-    {
-        // If we haven't reached the shrink delay, return full width
-        if (activeTimer <= shrinkDelay)
-        {
-            return laserWidth;
-        }
-        
-        // Calculate how far through the shrinking process we are
-        float shrinkDuration = activeTime - shrinkDelay;
-        float shrinkProgress = (activeTimer - shrinkDelay) / shrinkDuration;
-        
-        // Clamp to ensure we don't go below 0
-        shrinkProgress = Mathf.Clamp01(shrinkProgress);
-        
-        // Linear interpolation from full width to 0
-        return Mathf.Lerp(laserWidth, 0f, shrinkProgress);
-    }
-    
-    /// <summary>
-    /// Create a single laser segment between two points
-    /// </summary>
-    private GameObject CreateLaserSegment(Vector3 start, Vector3 end)
+    private GameObject CreateLaserSegment(Vector3 start, Vector3 end, Material material)
     {
         GameObject segment;
         
@@ -347,28 +356,29 @@ public class LaserEmitter : MonoBehaviour
             segment = Instantiate(laserSegmentPrefab);
             
             // Apply material if provided
-            if (laserMaterial != null)
+            Renderer renderer = segment.GetComponent<Renderer>();
+            if (renderer != null && material != null)
             {
-                Renderer renderer = segment.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    // Apply the standard material and color
-                    renderer.material = laserMaterial;
-                    renderer.material.color = laserColor;
-                    
-                    // If we also have the laser material settings, apply those
-                    if (laserMaterialSettings != null)
-                    {
-                        renderer.material = laserMaterialSettings.GetMaterial();
-                    }
-                }
+                // Use the provided material
+                renderer.material = material;
+                
+            }
+            else
+            {
+                //Debug.LogWarning($"Could not apply material: renderer={renderer != null}, material={material != null}");
             }
         }
         else
         {
             // Create a default cube if no prefab is provided
             segment = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            segment.GetComponent<Renderer>().material.color = laserColor;
+            
+            // Apply the material if provided
+            Renderer renderer = segment.GetComponent<Renderer>();
+            if (renderer != null && material != null)
+            {
+                renderer.material = material;
+            }
         }
         
         // Give the segment a descriptive name
@@ -400,5 +410,28 @@ public class LaserEmitter : MonoBehaviour
         }
         
         return segment;
+    }
+    
+    /// <summary>
+    /// Calculate the current width of the laser based on how long it has been active
+    /// </summary>
+    /// <returns>The current width to use for the laser</returns>
+    private float CalculateCurrentLaserWidth()
+    {
+        // If we haven't reached the shrink delay, return full width
+        if (activeTimer <= shrinkDelay)
+        {
+            return laserWidth;
+        }
+        
+        // Calculate how far through the shrinking process we are
+        float shrinkDuration = activeTime - shrinkDelay;
+        float shrinkProgress = (activeTimer - shrinkDelay) / shrinkDuration;
+        
+        // Clamp to ensure we don't go below 0
+        shrinkProgress = Mathf.Clamp01(shrinkProgress);
+        
+        // Linear interpolation from full width to 0
+        return Mathf.Lerp(laserWidth, 0f, shrinkProgress);
     }
 }
