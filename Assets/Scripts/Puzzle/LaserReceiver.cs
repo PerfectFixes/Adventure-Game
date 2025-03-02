@@ -75,6 +75,10 @@ public class LaserReceiver : MonoBehaviour
                 Debug.Log("Receiver activated! Laser has reached the destination.");
             }
         }
+        else
+        {
+            Debug.Log("Receiver activated! Laser has reached the destination but didnt hit all the deflectors.");
+        }
     }
     
    
