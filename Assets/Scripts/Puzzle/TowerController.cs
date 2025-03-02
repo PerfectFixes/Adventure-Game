@@ -29,6 +29,10 @@ public class TowerController : MonoBehaviour
     [Tooltip("Reference to an Input Action asset with Move and Select actions")]
     public InputActionAsset inputActions;
     
+    [Header("Puzzle References")]
+    [Tooltip("Reference to the LaserReceiver that determines if the puzzle is solved")]
+    public LaserReceiver laserReceiver;
+    
     // Input action references
     private InputAction moveAction;
     private InputAction selectAction;
@@ -41,6 +45,9 @@ public class TowerController : MonoBehaviour
     
     // Store monobehaviours for each tower that handle outlines
     private Dictionary<Transform, MonoBehaviour> towerOutlines = new Dictionary<Transform, MonoBehaviour>();
+    
+    // Puzzle state
+    private bool isPuzzleSolved = false;
     
     private void Awake()
     {
@@ -104,6 +111,12 @@ public class TowerController : MonoBehaviour
             
             // Fallback to manual creation of actions
             SetupFallbackInputActions();
+        }
+        
+        // Check LaserReceiver reference
+        if (laserReceiver == null)
+        {
+            Debug.LogWarning("LaserReceiver reference not set. Tower movement will not be disabled when puzzle is solved.");
         }
         
         // Select the first tower by default if we have any
@@ -214,6 +227,10 @@ public class TowerController : MonoBehaviour
     
     private void OnMove(InputAction.CallbackContext context)
     {
+        // If puzzle is solved, ignore movement input
+        if (CheckIfPuzzleSolved())
+            return;
+            
         // If it's a Vector2, get the Y component (for W/S movement)
         if (context.valueType == typeof(Vector2))
         {
@@ -241,6 +258,10 @@ public class TowerController : MonoBehaviour
     
     private void OnSelect(InputAction.CallbackContext context)
     {
+        // If puzzle is solved, ignore selection input
+        if (CheckIfPuzzleSolved())
+            return;
+            
         if (!context.performed) return;
         
         // Determine which selection key was pressed
@@ -284,10 +305,24 @@ public class TowerController : MonoBehaviour
         }
     }
     
+    // Check if the puzzle is solved, and update the internal state
+    private bool CheckIfPuzzleSolved()
+    {
+        if (laserReceiver != null)
+        {
+            isPuzzleSolved = laserReceiver.IsPuzzleSolved();
+        }
+        
+        return isPuzzleSolved;
+    }
+    
     private void Update()
     {
-        // Only move if we have towers and valid input
-        if (towers.Count > 0 && currentTowerIndex >= 0 && currentTowerIndex < towers.Count)
+        // Check if puzzle is solved
+        CheckIfPuzzleSolved();
+        
+        // Only move if we have towers, valid input, and puzzle is not solved
+        if (!isPuzzleSolved && towers.Count > 0 && currentTowerIndex >= 0 && currentTowerIndex < towers.Count)
         {
             Transform currentTower = towers[currentTowerIndex];
             
