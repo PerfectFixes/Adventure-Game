@@ -49,6 +49,10 @@ public class TowerController : MonoBehaviour
     // Puzzle state
     private bool isPuzzleSolved = false;
     
+    // Input system values
+    private float selectInputValue = 0f;
+    private float selectInputPrevValue = 0f;
+    
     private void Awake()
     {
         // Set all towers to starting position and set up outlines
@@ -81,37 +85,7 @@ public class TowerController : MonoBehaviour
         }
         
         // Set up input actions from the asset
-        if (inputActions != null)
-        {
-            // Get the "Player" action map (you might need to adjust this name)
-            var playerActionMap = inputActions.FindActionMap("Player");
-            
-            if (playerActionMap != null)
-            {
-                // Get the move and select actions
-                moveAction = playerActionMap.FindAction("Move");
-                selectAction = playerActionMap.FindAction("Select");
-                
-                // Enable the action map
-                playerActionMap.Enable();
-                
-                // Set up callbacks for the actions
-                if (moveAction != null) moveAction.performed += OnMove;
-                if (moveAction != null) moveAction.canceled += OnMove;
-                if (selectAction != null) selectAction.performed += OnSelect;
-            }
-            else
-            {
-                Debug.LogError("Could not find 'Player' action map in the input actions asset!");
-            }
-        }
-        else
-        {
-            Debug.LogError("Input Actions asset not assigned!");
-            
-            // Fallback to manual creation of actions
-            SetupFallbackInputActions();
-        }
+        SetupInputActions();
         
         // Check LaserReceiver reference
         if (laserReceiver == null)
@@ -124,6 +98,65 @@ public class TowerController : MonoBehaviour
         {
             currentTowerIndex = 0;
             UpdateTowerOutline();
+        }
+    }
+    
+    // Set up input actions using the asset
+    private void SetupInputActions()
+    {
+        if (inputActions != null)
+        {
+            // Try to find the Player action map (common naming convention)
+            InputActionMap actionMap = inputActions.FindActionMap("Player");
+            
+            // If not found, try to use the first available action map
+            if (actionMap == null && inputActions.actionMaps.Count > 0)
+            {
+                actionMap = inputActions.actionMaps[0];
+                Debug.Log("Using action map: " + actionMap.name);
+            }
+            
+            if (actionMap != null)
+            {
+                // Find the Move and Select actions
+                moveAction = actionMap.FindAction("Move");
+                selectAction = actionMap.FindAction("Select");
+                
+                // Log what we found to help with debugging
+                if (moveAction != null)
+                    Debug.Log("Found Move action with " + moveAction.bindings.Count + " bindings");
+                else
+                    Debug.LogWarning("Move action not found in action map " + actionMap.name);
+                    
+                if (selectAction != null)
+                    Debug.Log("Found Select action with " + selectAction.bindings.Count + " bindings");
+                else
+                    Debug.LogWarning("Select action not found in action map " + actionMap.name);
+                
+                // Register callbacks
+                if (moveAction != null)
+                {
+                    moveAction.performed += OnMove;
+                    moveAction.canceled += OnMove;
+                }
+                
+                if (selectAction != null)
+                {
+                    selectAction.performed += OnSelect;
+                    selectAction.canceled += OnSelect;
+                }
+                
+                // Enable the action map
+                actionMap.Enable();
+            }
+            else
+            {
+                Debug.LogError("No action maps found in the input actions asset!");
+            }
+        }
+        else
+        {
+            Debug.LogError("Input Actions asset not assigned! Add a reference to an Input Action Asset in the Inspector.");
         }
     }
     
@@ -202,57 +235,28 @@ public class TowerController : MonoBehaviour
         }
     }
     
-    // If no Input Action asset is provided, create the actions manually
-    private void SetupFallbackInputActions()
-    {
-        // Create an action map
-        var map = new InputActionMap("Player");
-        
-        // Create move action (W/S keys)
-        moveAction = map.AddAction("Move", binding: "<Keyboard>/w");
-        moveAction.AddBinding("<Keyboard>/s");
-        
-        // Create select action (A/D keys)
-        selectAction = map.AddAction("Select", binding: "<Keyboard>/a");
-        selectAction.AddBinding("<Keyboard>/d");
-        
-        // Set up callbacks
-        moveAction.performed += OnMove;
-        moveAction.canceled += OnMove;
-        selectAction.performed += OnSelect;
-        
-        // Enable the actions
-        map.Enable();
-    }
-    
     private void OnMove(InputAction.CallbackContext context)
     {
         // If puzzle is solved, ignore movement input
         if (CheckIfPuzzleSolved())
             return;
-            
-        // If it's a Vector2, get the Y component (for W/S movement)
+        
+        // Read the input value - this works for any binding type
         if (context.valueType == typeof(Vector2))
         {
+            // For 2D Vector input like gamepad sticks
             Vector2 input = context.ReadValue<Vector2>();
             verticalInput = input.y;
         }
-        // If it's not a Vector2, try to determine from the control
-        else
+        else if (context.valueType == typeof(float))
         {
-            if (context.control != null)
-            {
-                string controlName = context.control.name.ToLower();
-                
-                if (controlName.Contains("w"))
-                {
-                    verticalInput = context.performed ? 1.0f : 0.0f;
-                }
-                else if (controlName.Contains("s"))
-                {
-                    verticalInput = context.performed ? -1.0f : 0.0f;
-                }
-            }
+            // For 1D axis input
+            verticalInput = context.ReadValue<float>();
+        }
+        else if (context.canceled)
+        {
+            // When the action is canceled (input released)
+            verticalInput = 0f;
         }
     }
     
@@ -261,47 +265,24 @@ public class TowerController : MonoBehaviour
         // If puzzle is solved, ignore selection input
         if (CheckIfPuzzleSolved())
             return;
-            
-        if (!context.performed) return;
         
-        // Determine which selection key was pressed
-        string controlName = context.control.name.ToLower();
-        
-        // Store the previous index to check if it actually changed
-        int previousIndex = currentTowerIndex;
-        
-        // Change the selected tower based on A/D input without wrapping
-        if (controlName.Contains("a"))
+        // Read the selection input value
+        if (context.canceled)
         {
-            // Only move left if not already at the leftmost tower
-            if (currentTowerIndex > 0)
-            {
-                currentTowerIndex--;
-            }
-            // If at leftmost tower and press left, do nothing
+            selectInputValue = 0f;
         }
-        else if (controlName.Contains("d"))
+        else if (context.performed)
         {
-            // Only move right if not already at the rightmost tower
-            if (currentTowerIndex < towers.Count - 1)
+            // Get the input value based on its type
+            if (context.valueType == typeof(Vector2))
             {
-                currentTowerIndex++;
+                Vector2 input = context.ReadValue<Vector2>();
+                selectInputValue = input.x;
             }
-            // If at rightmost tower and press right, do nothing
-        }
-        
-        // Only update outlines if the selected tower actually changed
-        if (previousIndex != currentTowerIndex)
-        {
-            // Disable outline on the previously selected tower
-            if (previousIndex >= 0 && previousIndex < towers.Count)
+            else if (context.valueType == typeof(float))
             {
-                Transform previousTower = towers[previousIndex];
-                DisableTowerOutline(previousTower);
+                selectInputValue = context.ReadValue<float>();
             }
-            
-            // Update the tower outline
-            UpdateTowerOutline();
         }
     }
     
@@ -321,12 +302,19 @@ public class TowerController : MonoBehaviour
         // Check if puzzle is solved
         CheckIfPuzzleSolved();
         
-        // Only move if we have towers, valid input, and puzzle is not solved
-        if (!isPuzzleSolved && towers.Count > 0 && currentTowerIndex >= 0 && currentTowerIndex < towers.Count)
+        // Only proceed if puzzle is not solved
+        if (isPuzzleSolved)
+            return;
+        
+        // Handle tower selection (done in Update to handle edge detection properly)
+        HandleTowerSelection();
+        
+        // Handle tower movement
+        if (towers.Count > 0 && currentTowerIndex >= 0 && currentTowerIndex < towers.Count)
         {
             Transform currentTower = towers[currentTowerIndex];
             
-            // Move the selected tower forward/backward based on W/S input
+            // Move the selected tower forward/backward based on input
             if (currentTower != null && verticalInput != 0)
             {
                 // Get the current position
@@ -343,6 +331,47 @@ public class TowerController : MonoBehaviour
                 currentTower.position = position;
             }
         }
+    }
+    
+    // Handle tower selection based on input
+    private void HandleTowerSelection()
+    {
+        // Only process if there's a difference in input (rising/falling edge detection)
+        if (Mathf.Abs(selectInputValue - selectInputPrevValue) > 0.5f)
+        {
+            int previousIndex = currentTowerIndex;
+            
+            // Detect direction change
+            bool moveLeft = selectInputValue < -0.5f && selectInputPrevValue >= -0.5f;
+            bool moveRight = selectInputValue > 0.5f && selectInputPrevValue <= 0.5f;
+            
+            // Change selected tower based on direction
+            if (moveLeft && currentTowerIndex > 0)
+            {
+                currentTowerIndex--;
+            }
+            else if (moveRight && currentTowerIndex < towers.Count - 1)
+            {
+                currentTowerIndex++;
+            }
+            
+            // Update tower outline if selection changed
+            if (previousIndex != currentTowerIndex)
+            {
+                // Disable outline on the previously selected tower
+                if (previousIndex >= 0 && previousIndex < towers.Count)
+                {
+                    Transform previousTower = towers[previousIndex];
+                    DisableTowerOutline(previousTower);
+                }
+                
+                // Update the tower outline
+                UpdateTowerOutline();
+            }
+        }
+        
+        // Store current value for next frame comparison
+        selectInputPrevValue = selectInputValue;
     }
     
     private void UpdateTowerOutline()
@@ -377,16 +406,16 @@ public class TowerController : MonoBehaviour
     
     private void OnEnable()
     {
-        // Enable input actions
-        if (moveAction != null) moveAction.Enable();
-        if (selectAction != null) selectAction.Enable();
+        // Enable input actions if they exist
+        InputActionMap actionMap = inputActions?.FindActionMap("Player");
+        if (actionMap != null) actionMap.Enable();
     }
     
     private void OnDisable()
     {
-        // Disable input actions
-        if (moveAction != null) moveAction.Disable();
-        if (selectAction != null) selectAction.Disable();
+        // Disable input actions if they exist
+        InputActionMap actionMap = inputActions?.FindActionMap("Player");
+        if (actionMap != null) actionMap.Disable();
         
         // Disable all outlines
         foreach (Transform tower in towers)
@@ -407,6 +436,7 @@ public class TowerController : MonoBehaviour
         if (selectAction != null)
         {
             selectAction.performed -= OnSelect;
+            selectAction.canceled -= OnSelect;
         }
         
         // Disable all outlines
