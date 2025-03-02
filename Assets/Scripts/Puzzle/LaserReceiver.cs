@@ -8,12 +8,14 @@ public class LaserReceiver : MonoBehaviour
     
     [Tooltip("Optional visual feedback when the receiver is activated")]
     public GameObject activationEffect;
-    
+
     [Tooltip("Color to change the receiver to when activated")]
-    public Color activatedColor = Color.green;
+    //public Color activatedColor = Color.green;
+    public GameObject colorlessRainbow;
+    public GameObject colorfulRainbow;
     
     // State tracking
-    private bool isPuzzleSolved = false;
+    public bool isPuzzleSolved = false;
     private Renderer receiverRenderer;
     private Color originalColor;
     public Animation testAnimation;
@@ -55,7 +57,8 @@ public class LaserReceiver : MonoBehaviour
             // Visual feedback
             if (receiverRenderer != null)
             {
-                receiverRenderer.material.color = activatedColor;
+                //receiverRenderer.material.color = activatedColor;
+                activationEffect.SetActive(true);
             }
             
             // Show activation effect if available
@@ -67,8 +70,10 @@ public class LaserReceiver : MonoBehaviour
             // Debug message - this would be replaced with actual game events later
             if (allDeflectorsHit)
             {
-                Debug.Log("Puzzle Solved! Laser has passed through all " + totalDeflectors + " deflectors and hit the receiver.");
-                IsPuzzleSolved();
+                colorfulRainbow.SetActive(true);
+                colorlessRainbow.SetActive(false);
+                isPuzzleSolved = true;
+                print("Solved");
             }
             else
             {
@@ -95,16 +100,13 @@ public class LaserReceiver : MonoBehaviour
         
         if (activationEffect != null)
         {
-            activationEffect.SetActive(false);
+            colorlessRainbow.SetActive(false);
+            colorfulRainbow.SetActive(true);
         }
     }
     
  
     /// Returns whether the puzzle has been solved
-    public bool IsPuzzleSolved()
-    {
-        return isPuzzleSolved;
-    }
     /*{
      //add the correct using before resume the work on the animaton
         //Camera effect goes zoom out + fade to white.

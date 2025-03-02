@@ -6,22 +6,29 @@ public class LaserDeflector : MonoBehaviour
     [Tooltip("The angle to deflect the laser in degrees (from the tower's forward direction)")]
     [Range(-180, 180)]
     public float deflectionAngle = -45f;
+    
+    [Header("Visual Settings")]
+    [Tooltip("Material to apply to the laser after deflection")]
+    public Material laserMaterial;
+    
+    // Store original colors for gizmos
+    private Color gizmoIncomingColor = Color.yellow;
+    private Color gizmoOutgoingColor = Color.green;
 
     // Called by Unity when this component is selected in editor
     private void OnDrawGizmosSelected()
     {
         // Draw a visual representation of the entry and exit rays
-        Gizmos.color = Color.yellow;
+        Gizmos.color = gizmoIncomingColor;
         // Incoming ray (assuming from left side)
         Vector3 incoming = Vector3.left;
         Gizmos.DrawRay(transform.position, incoming.normalized * 2);
         
         // Outgoing ray based on deflection angle
-        Gizmos.color = Color.green;
+        Gizmos.color = laserMaterial != null ? gizmoOutgoingColor : Color.white;
         Vector3 outgoing = GetExitDirection();
         Gizmos.DrawRay(transform.position, outgoing.normalized * 2);
     }
-
     
     /// <summary>
     /// Returns the exit direction of the laser based on the deflection angle
@@ -47,5 +54,14 @@ public class LaserDeflector : MonoBehaviour
     public void SetDeflectionAngle(float newAngle)
     {
         deflectionAngle = Mathf.Clamp(newAngle, -180f, 180f);
+    }
+    
+    /// <summary>
+    /// Returns the material to be applied to the laser after it hits this deflector
+    /// </summary>
+    /// <returns>The material to apply, or null if no material is assigned</returns>
+    public Material GetLaserMaterial()
+    {
+        return laserMaterial;
     }
 }

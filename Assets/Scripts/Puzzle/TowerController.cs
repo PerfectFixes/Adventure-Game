@@ -46,9 +46,6 @@ public class TowerController : MonoBehaviour
     // Store monobehaviours for each tower that handle outlines
     private Dictionary<Transform, MonoBehaviour> towerOutlines = new Dictionary<Transform, MonoBehaviour>();
     
-    // Puzzle state
-    private bool isPuzzleSolved = false;
-    
     // Input system values
     private float selectInputValue = 0f;
     private float selectInputPrevValue = 0f;
@@ -121,17 +118,6 @@ public class TowerController : MonoBehaviour
                 // Find the Move and Select actions
                 moveAction = actionMap.FindAction("Move");
                 selectAction = actionMap.FindAction("Select");
-                
-                // Log what we found to help with debugging
-                if (moveAction != null)
-                    Debug.Log("Found Move action with " + moveAction.bindings.Count + " bindings");
-                else
-                    Debug.LogWarning("Move action not found in action map " + actionMap.name);
-                    
-                if (selectAction != null)
-                    Debug.Log("Found Select action with " + selectAction.bindings.Count + " bindings");
-                else
-                    Debug.LogWarning("Select action not found in action map " + actionMap.name);
                 
                 // Register callbacks
                 if (moveAction != null)
@@ -238,7 +224,7 @@ public class TowerController : MonoBehaviour
     private void OnMove(InputAction.CallbackContext context)
     {
         // If puzzle is solved, ignore movement input
-        if (CheckIfPuzzleSolved())
+        if (laserReceiver.isPuzzleSolved)
             return;
         
         // Read the input value - this works for any binding type
@@ -263,7 +249,7 @@ public class TowerController : MonoBehaviour
     private void OnSelect(InputAction.CallbackContext context)
     {
         // If puzzle is solved, ignore selection input
-        if (CheckIfPuzzleSolved())
+        if (laserReceiver.isPuzzleSolved)
             return;
         
         // Read the selection input value
@@ -287,24 +273,20 @@ public class TowerController : MonoBehaviour
     }
     
     // Check if the puzzle is solved, and update the internal state
-    private bool CheckIfPuzzleSolved()
-    {
-        if (laserReceiver != null)
-        {
-            isPuzzleSolved = laserReceiver.IsPuzzleSolved();
-        }
-        
-        return isPuzzleSolved;
-    }
     
     private void Update()
     {
-        // Check if puzzle is solved
-        CheckIfPuzzleSolved();
-        
         // Only proceed if puzzle is not solved
-        if (isPuzzleSolved)
+        if (laserReceiver.isPuzzleSolved)
+        {
+            // Disable all outlines
+            foreach (Transform tower in towers)
+            {
+                DisableTowerOutline(tower);
+            }
             return;
+        }
+           
         
         // Handle tower selection (done in Update to handle edge detection properly)
         HandleTowerSelection();
