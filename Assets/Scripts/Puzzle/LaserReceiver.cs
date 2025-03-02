@@ -16,7 +16,7 @@ public class LaserReceiver : MonoBehaviour
     private bool isPuzzleSolved = false;
     private Renderer receiverRenderer;
     private Color originalColor;
-    
+    public Animation testAnimation;
     private void Awake()
     {
         // Cache the renderer component
@@ -105,4 +105,13 @@ public class LaserReceiver : MonoBehaviour
     {
         return isPuzzleSolved;
     }
+    /*{
+     //add the correct using before resume the work on the animaton
+        //Camera effect goes zoom out + fade to white.
+        while (testAnimation.isPlaying)
+        {
+            yield return new WaitForSeconds(1);
+        }
+        
+    }*/
 }
