@@ -25,7 +25,7 @@ public class LaserEmitter : MonoBehaviour
     
     [Header("Timing Settings")]
     [Tooltip("Time between laser activations in seconds (only used in pulsing mode)")]
-    public float cycleTime = 5.0f;
+    public float cycleTime = 3.5f;
     
     [Tooltip("Duration the laser stays active in seconds (only used in pulsing mode)")]
     public float activeTime = 0.5f;
@@ -245,6 +245,8 @@ public class LaserEmitter : MonoBehaviour
                     
                     // See if this deflector changes the material
                     Material deflectorMaterial = deflector.GetLaserMaterial();
+                    deflector.FadeColorOut();
+                    //Prtiitititititititiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
                     if (deflectorMaterial != null)
                     {
                         // Update current material for future segments
