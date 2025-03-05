@@ -1,4 +1,0 @@
-repository "Adventure Game/Adventure Game@18966994425310@cloud"
-  path "/"
-    br "/main"
-    co "/main"
