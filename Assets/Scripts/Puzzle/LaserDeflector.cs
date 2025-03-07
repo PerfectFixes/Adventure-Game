@@ -29,8 +29,10 @@ public class LaserDeflector : MonoBehaviour
     public Material defaultMaterial;
     private bool isFading = false;
     
+    private LaserEmitter laserEmitter;
     private void Awake()
     {
+        laserEmitter = GameObject.FindWithTag("Laser Emitter").GetComponent<LaserEmitter>();
         objectRenderer = GetComponent<Renderer>();
         
         // Create an instanced material from the default material
@@ -118,61 +120,70 @@ public class LaserDeflector : MonoBehaviour
     
     private IEnumerator FadeToDefaultColor()
     {
-        isFading = true;
-        
-        // Extract colors from materials
-        Color laserColor = GetColorFromMaterial(laserMaterial);
-        Color defaultColor = GetColorFromMaterial(defaultMaterial);
-        
-        // Ensure we have a material instance to modify
-        if (instancedMaterial == null && objectRenderer != null)
+        if (!isFading)
         {
-            instancedMaterial = new Material(objectRenderer.material);
-            objectRenderer.material = instancedMaterial;
-        }
-        
-        // Set the initial color to the laser color
-        if (instancedMaterial.HasProperty("_Color"))
-        {
-            instancedMaterial.color = laserColor;
-        }
-        
-        // Wait for the pause time before starting the fade
-        yield return new WaitForSeconds(pauseTime);
-        
-        // Start the fade timer
-        float elapsedTime = 0;
-        
-        // Perform the gradual fade
-        while (elapsedTime < fadeTime)
-        {
-            // Calculate the interpolation factor (0 to 1)
-            float t = elapsedTime / fadeTime;
-            
-            // Use a smooth step function for more natural easing
-            float smoothT = Mathf.SmoothStep(0, 1, t);
-            
-            // Interpolate the color
+            isFading = true;
+
+            // Extract colors from materials
+            Color laserColor = GetColorFromMaterial(laserMaterial);
+            Color defaultColor = GetColorFromMaterial(defaultMaterial);
+
+            // Ensure we have a material instance to modify
+            if (instancedMaterial == null && objectRenderer != null)
+            {
+                instancedMaterial = new Material(objectRenderer.material);
+                objectRenderer.material = instancedMaterial;
+            }
+
+            // Set the initial color to the laser color
             if (instancedMaterial.HasProperty("_Color"))
             {
-                Color lerpedColor = Color.Lerp(laserColor, defaultColor, smoothT);
-                instancedMaterial.color = lerpedColor;
+                instancedMaterial.color = laserColor;
             }
-            
-            // Wait for the next frame
-            yield return null;
-            
-            // Update the elapsed time
-            elapsedTime += Time.deltaTime;
+
+
+
+            // Wait for the pause time before starting the fade
+            yield return new WaitForSeconds(pauseTime);
+            if (!laserEmitter.isContinuous)
+            {
+                // Start the fade timer
+                float elapsedTime = 0;
+
+                // Perform the gradual fade
+                while (elapsedTime < fadeTime)
+                {
+                    // Calculate the interpolation factor (0 to 1)
+                    float t = elapsedTime / fadeTime;
+
+                    // Use a smooth step function for more natural easing
+                    float smoothT = Mathf.SmoothStep(0, 1, t);
+
+                    // Interpolate the color
+                    if (instancedMaterial.HasProperty("_Color"))
+                    {
+                        Color lerpedColor = Color.Lerp(laserColor, defaultColor, smoothT);
+                        instancedMaterial.color = lerpedColor;
+                    }
+
+                    // Wait for the next frame
+                    yield return null;
+
+                    // Update the elapsed time
+                    elapsedTime += Time.deltaTime;
+                }
+
+                // Ensure we end with the exact target color
+                if (instancedMaterial.HasProperty("_Color"))
+                {
+                    instancedMaterial.color = defaultColor;
+                }
+
+                isFading = false;
+            }
         }
-        
-        // Ensure we end with the exact target color
-        if (instancedMaterial.HasProperty("_Color"))
-        {
-            instancedMaterial.color = defaultColor;
-        }
-        
-        isFading = false;
+
+
     }
     
     /// <summary>

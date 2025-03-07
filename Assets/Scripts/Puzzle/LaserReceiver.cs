@@ -6,6 +6,8 @@ public class LaserReceiver : MonoBehaviour
     [Tooltip("If enabled, the receiver will check that all deflectors have been hit")]
     public bool requireAllDeflectors = true;
     
+    private LaserEmitter laserEmitter;
+    
     [Tooltip("Optional visual feedback when the receiver is activated")]
     public GameObject activationEffect;
 
@@ -21,6 +23,7 @@ public class LaserReceiver : MonoBehaviour
     public Animation testAnimation;
     private void Awake()
     {
+        laserEmitter = GameObject.FindWithTag("Laser Emitter").GetComponent<LaserEmitter>();
         // Cache the renderer component
         receiverRenderer = GetComponent<Renderer>();
         if (receiverRenderer != null)
@@ -53,6 +56,7 @@ public class LaserReceiver : MonoBehaviour
         {
             // Puzzle solved!
             isPuzzleSolved = true;
+            laserEmitter.isContinuous = true;
             
             // Visual feedback
             if (receiverRenderer != null)
@@ -86,7 +90,6 @@ public class LaserReceiver : MonoBehaviour
         }
     }
     
-   
     /// Resets the receiver to its initial state (for puzzle reset)
     public void ResetReceiver()
     {
