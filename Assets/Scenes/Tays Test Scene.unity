@@ -1344,9 +1344,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerGameObject: {fileID: 2101844443}
   playerCamera: {fileID: 1726342301}
-  laserPuzzleObject: {fileID: 1179804352}
-  laserPuzzleCamera: {fileID: 1271958921}
   fadeAnimator: {fileID: 524946912}
+  fadeInDuration: 1
+  transitionDuration: 0.5
+  puzzles: []
   currentState: 0
 --- !u!1 &361968533
 GameObject:
@@ -2689,9 +2690,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerGameObject: {fileID: 2101844443}
   playerCamera: {fileID: 1726342301}
-  laserPuzzleObject: {fileID: 1179804352}
-  laserPuzzleCamera: {fileID: 1271958921}
   fadeAnimator: {fileID: 524946912}
+  fadeInDuration: 0.5
+  transitionDuration: 0.25
+  puzzles:
+  - puzzleName: Laser Puzzle
+    puzzleObject: {fileID: 1179804352}
+    puzzleCamera: {fileID: 1271958921}
+    stateType: 1
   currentState: 0
 --- !u!1 &663877120
 GameObject:
@@ -4421,7 +4427,7 @@ MonoBehaviour:
   activeTime: 0.75
   shrinkDelay: 0.25
   laserSegmentPrefab: {fileID: 5399254268076391443, guid: ec159ae5c7d09e14ab34f4736e25b727, type: 3}
-  defaultLaserMaterial: {fileID: 2100000, guid: 6f4cbf727499ba94b9070de7e9de1a8a, type: 2}
+  defaultLaserMaterial: {fileID: 2100000, guid: 89fa15de77d66c84dbb19a1ac83e9423, type: 2}
 --- !u!120 &1106527183
 LineRenderer:
   serializedVersion: 2
@@ -9177,7 +9183,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 935493039590283013, guid: 1e8b3669730c8394ebe5adfc08ed289e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.211
+      value: 0.21100044
       objectReference: {fileID: 0}
     - target: {fileID: 935493039590283013, guid: 1e8b3669730c8394ebe5adfc08ed289e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -9972,7 +9978,7 @@ MonoBehaviour:
   moveSpeed: 0.5
   minZPosition: -0.5
   maxZPosition: 0.5
-  outlineColor: {r: 0.73357177, g: 0.9748427, b: 0.53647, a: 1}
+  outlineColor: {r: 0.21656573, g: 0.29718894, b: 0.31446534, a: 1}
   outlineWidth: 3
   inputActions: {fileID: -944628639613478452, guid: 942371532bae5a74285cc12db7fe6a89, type: 3}
   laserReceiver: {fileID: 2040982269}
@@ -10646,7 +10652,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3253742544242815470, guid: c799d8540008c4f4b8f33dba2c99c974, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -12.5
+      value: -14.5
       objectReference: {fileID: 0}
     - target: {fileID: 3253742544242815470, guid: c799d8540008c4f4b8f33dba2c99c974, type: 3}
       propertyPath: m_LocalPosition.y
@@ -10654,11 +10660,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3253742544242815470, guid: c799d8540008c4f4b8f33dba2c99c974, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -14.750003
+      value: -14.750007
       objectReference: {fileID: 0}
     - target: {fileID: 3253742544242815470, guid: c799d8540008c4f4b8f33dba2c99c974, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.0000004768371
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3253742544242815470, guid: c799d8540008c4f4b8f33dba2c99c974, type: 3}
       propertyPath: m_LocalRotation.x
@@ -10666,7 +10672,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3253742544242815470, guid: c799d8540008c4f4b8f33dba2c99c974, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 1
+      value: -0.00000086426735
       objectReference: {fileID: 0}
     - target: {fileID: 3253742544242815470, guid: c799d8540008c4f4b8f33dba2c99c974, type: 3}
       propertyPath: m_LocalRotation.z
@@ -10678,7 +10684,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3253742544242815470, guid: c799d8540008c4f4b8f33dba2c99c974, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 180
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3253742544242815470, guid: c799d8540008c4f4b8f33dba2c99c974, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z

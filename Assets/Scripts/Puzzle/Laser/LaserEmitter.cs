@@ -110,11 +110,13 @@ public class LaserEmitter : MonoBehaviour
         {
             if (!isLaserActive)
             {
+                
                 isLaserActive = true;
                 UpdateLaserPath();
             }
             else
             {
+                laserWidth = 0.03f;
                 // Keep updating the path (for moving objects)
                 UpdateLaserPath();
             }
@@ -434,5 +436,10 @@ public class LaserEmitter : MonoBehaviour
         
         // Linear interpolation from full width to 0
         return Mathf.Lerp(laserWidth, 0f, shrinkProgress);
+    }
+
+    private void ResetLaserWidth()
+    {
+        
     }
 }
