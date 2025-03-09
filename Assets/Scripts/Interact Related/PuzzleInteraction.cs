@@ -8,6 +8,9 @@ public class PuzzleInteraction : MonoBehaviour
     
     [SerializeField]
     private PlayerStateControl playerStateControl;
+    
+    [SerializeField]
+    private PlayerStateControl.PlayerState puzzleType;
 
     private void Awake()
     {
@@ -22,8 +25,9 @@ public class PuzzleInteraction : MonoBehaviour
             return;
         }
         hasInteracted = true;
-        playerStateControl.SetPlayerState(PlayerStateControl.PlayerState.LaserPuzzle);
+        playerStateControl.SetPlayerState(puzzleType);
     }
+
     public void DisplayUI()
     {
         interactCanvas.gameObject.SetActive(true);
