@@ -38,7 +38,7 @@ public class DieController : MonoBehaviour
     private InputAction printAction;
     
     // Currently selected die index
-    private int currentDieIndex = 0;
+    public int currentDieIndex = 0;
     
     // Dice values
     private int[] diceValues;
@@ -102,6 +102,7 @@ public class DieController : MonoBehaviour
                     Debug.LogWarning("No Outline component found on " + die.name + ". Make sure you've added the Quick Outline component to this object.");
                 }
             }
+     
         }
         
         // Set up input actions from the asset
@@ -454,7 +455,7 @@ public class DieController : MonoBehaviour
         }
     }
     
-    private void UpdateDieOutline()
+    public void UpdateDieOutline()
     {
         if (diceObjects.Count > 0 && currentDieIndex >= 0 && currentDieIndex < diceObjects.Count)
         {
@@ -474,7 +475,7 @@ public class DieController : MonoBehaviour
         }
     }
     
-    private void DisableDieOutline(Transform die)
+    public void DisableDieOutline(Transform die)
     {
         if (die != null && diceOutlines.ContainsKey(die))
         {

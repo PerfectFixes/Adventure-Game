@@ -117,6 +117,15 @@ public partial class @DiceControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Select"",
+                    ""type"": ""Button"",
+                    ""id"": ""81630f3f-af40-4daf-836e-66740502d598"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -284,6 +293,28 @@ public partial class @DiceControls: IInputActionCollection2, IDisposable
                     ""action"": ""Print"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c3735364-663c-4016-b030-7defbf6c3337"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Select"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""5023dd45-b19e-40f6-8c97-aca66c0f1db4"",
+                    ""path"": ""<Gamepad>/select"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Select"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -295,6 +326,7 @@ public partial class @DiceControls: IInputActionCollection2, IDisposable
         m_Gameplay_ChangeValue = m_Gameplay.FindAction("ChangeValue", throwIfNotFound: true);
         m_Gameplay_Move = m_Gameplay.FindAction("Move", throwIfNotFound: true);
         m_Gameplay_Print = m_Gameplay.FindAction("Print", throwIfNotFound: true);
+        m_Gameplay_Select = m_Gameplay.FindAction("Select", throwIfNotFound: true);
     }
 
     ~@DiceControls()
@@ -378,6 +410,7 @@ public partial class @DiceControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_ChangeValue;
     private readonly InputAction m_Gameplay_Move;
     private readonly InputAction m_Gameplay_Print;
+    private readonly InputAction m_Gameplay_Select;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -401,6 +434,10 @@ public partial class @DiceControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/Print".
         /// </summary>
         public InputAction @Print => m_Wrapper.m_Gameplay_Print;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/Select".
+        /// </summary>
+        public InputAction @Select => m_Wrapper.m_Gameplay_Select;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -436,6 +473,9 @@ public partial class @DiceControls: IInputActionCollection2, IDisposable
             @Print.started += instance.OnPrint;
             @Print.performed += instance.OnPrint;
             @Print.canceled += instance.OnPrint;
+            @Select.started += instance.OnSelect;
+            @Select.performed += instance.OnSelect;
+            @Select.canceled += instance.OnSelect;
         }
 
         /// <summary>
@@ -456,6 +496,9 @@ public partial class @DiceControls: IInputActionCollection2, IDisposable
             @Print.started -= instance.OnPrint;
             @Print.performed -= instance.OnPrint;
             @Print.canceled -= instance.OnPrint;
+            @Select.started -= instance.OnSelect;
+            @Select.performed -= instance.OnSelect;
+            @Select.canceled -= instance.OnSelect;
         }
 
         /// <summary>
@@ -517,5 +560,12 @@ public partial class @DiceControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPrint(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Select" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSelect(InputAction.CallbackContext context);
     }
 }
