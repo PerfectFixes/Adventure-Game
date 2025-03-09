@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class LaserReceiver : MonoBehaviour
 {
@@ -21,6 +23,9 @@ public class LaserReceiver : MonoBehaviour
     private Renderer receiverRenderer;
     private Color originalColor;
     public Animation testAnimation;
+    [SerializeField] private PlayerStateControl playerStateControl;
+
+    public UnityEvent onPuzzleSolved;
     private void Awake()
     {
         laserEmitter = GameObject.FindWithTag("Laser Emitter").GetComponent<LaserEmitter>();
@@ -47,16 +52,17 @@ public class LaserReceiver : MonoBehaviour
     {
         // If puzzle is already solved, no need to process again
         if (isPuzzleSolved)
+        {
+            
             return;
+        }
+           
             
         bool allDeflectorsHit = (hitDeflectors.Count == totalDeflectors);
         
         // Check puzzle completion condition
         if (!requireAllDeflectors || allDeflectorsHit)
         {
-            // Puzzle solved!
-            isPuzzleSolved = true;
-            laserEmitter.isContinuous = true;
             
             // Visual feedback
             if (receiverRenderer != null)
@@ -64,7 +70,8 @@ public class LaserReceiver : MonoBehaviour
                 //receiverRenderer.material.color = activatedColor;
                 activationEffect.SetActive(true);
             }
-            
+
+            StartCoroutine(FinishPuzzleAnimation());
             // Show activation effect if available
             if (activationEffect != null)
             {
@@ -81,15 +88,26 @@ public class LaserReceiver : MonoBehaviour
             }
             else
             {
-                Debug.Log("Receiver activated! Laser has reached the destination.");
+                //Debug.Log("Receiver activated! Laser has reached the destination.");
             }
         }
         else
         {
-            Debug.Log("Receiver activated! Laser has reached the destination but didnt hit all the deflectors.");
+           // Debug.Log("Receiver activated! Laser has reached the destination but didnt hit all the deflectors.");
         }
     }
-    
+
+    private IEnumerator FinishPuzzleAnimation()
+    {
+        onPuzzleSolved.Invoke();
+        isPuzzleSolved = true;
+        laserEmitter.isContinuous = true;
+        print("Start Animation");
+        yield return new WaitForSeconds(1f);
+        print("finish animation and move camera");
+        playerStateControl.SetPlayerState(PlayerStateControl.PlayerState.Moving);
+
+    }
     /// Resets the receiver to its initial state (for puzzle reset)
     public void ResetReceiver()
     {

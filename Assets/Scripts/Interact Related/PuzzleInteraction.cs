@@ -4,6 +4,7 @@ using UnityEngine;
 public class PuzzleInteraction : MonoBehaviour
 {
     private Canvas interactCanvas;
+    private bool hasInteracted = false;
     
     [SerializeField]
     private PlayerStateControl playerStateControl;
@@ -11,11 +12,17 @@ public class PuzzleInteraction : MonoBehaviour
     private void Awake()
     {
         interactCanvas = GetComponentInChildren<Canvas>();
+        interactCanvas.gameObject.SetActive(false);
     }
 
     public void StartPuzzle()
     {
-        playerStateControl.SetPlayerState(PlayerStateControl.PlayerState.Puzzling);
+        if (hasInteracted)
+        {
+            return;
+        }
+        hasInteracted = true;
+        playerStateControl.SetPlayerState(PlayerStateControl.PlayerState.LaserPuzzle);
     }
     public void DisplayUI()
     {
