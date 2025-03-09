@@ -1,4 +1,5 @@
 ﻿ using UnityEngine;
+ using UnityEngine.Events;
 #if ENABLE_INPUT_SYSTEM 
 using UnityEngine.InputSystem;
 #endif
@@ -74,6 +75,9 @@ namespace StarterAssets
 
         [Tooltip("For locking the camera position on all axis")]
         public bool LockCameraPosition = false;
+        
+        [SerializeField]
+        private PlayerStateControl playerStateControl;
 
         // cinemachine
         private float _cinemachineTargetYaw;
@@ -109,6 +113,8 @@ namespace StarterAssets
         private const float _threshold = 0.01f;
 
         private bool _hasAnimator;
+        
+        public UnityEvent InteractionRequested;
 
         private bool IsCurrentDeviceMouse
         {
@@ -154,6 +160,10 @@ namespace StarterAssets
 
         private void Update()
         {
+            if (playerStateControl.currentState != PlayerStateControl.PlayerState.Moving)
+            {
+                return;
+            }
             _hasAnimator = TryGetComponent(out _animator);
 
             AddGravity();
@@ -213,6 +223,10 @@ namespace StarterAssets
 
         private void Move()
         {
+            if (playerStateControl.currentState != PlayerStateControl.PlayerState.Moving)
+            {
+                return;
+            }
             // set target speed based on move speed, sprint speed and if sprint is pressed
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
@@ -282,37 +296,49 @@ namespace StarterAssets
         private void AddGravity()
         {
              if (Grounded)
-            {
-                // reset the fall timeout timer
-                _fallTimeoutDelta = FallTimeout;
+             {
+                 // reset the fall timeout timer
+                 _fallTimeoutDelta = FallTimeout;
 
-                // update animator if using character
-                if (_hasAnimator)
-                {
-                    _animator.SetBool(_animIDJump, false);
-                    _animator.SetBool(_animIDFreeFall, false);
-                }
+                 // update animator if using character
+                 if (_hasAnimator)
+                 {
+                     _animator.SetBool(_animIDJump, false);
+                     _animator.SetBool(_animIDFreeFall, false);
+                 }
 
-                // stop our velocity dropping infinitely when grounded
-                if (_verticalVelocity < 0.0f)
-                {
-                    _verticalVelocity = -2f;
-                }
-            }
-            else
-            {
-                // fall timeout
-                if (_fallTimeoutDelta >= 0.0f)
-                {
-                    _fallTimeoutDelta -= Time.deltaTime;
-                }
-            }
+                 // stop our velocity dropping infinitely when grounded
+                 if (_verticalVelocity < 0.0f)
+                 {
+                     _verticalVelocity = -2f;
+                 }
+                 /*if (Input.GetKeyDown(KeyCode.E))
+                 {
+                     Debug.Log("E key was pressed");
+                     InteractionRequested.Invoke();
+                     _input.interactionRequested = false;
+                 }*/
+                 // Interacted
+                 if (_input.interactionRequested)
+                 {
+                     InteractionRequested.Invoke();
+                     _input.interactionRequested = false;
+                 }
+             }
+             else
+             {
+                 // fall timeout
+                 if (_fallTimeoutDelta >= 0.0f)
+                 {
+                     _fallTimeoutDelta -= Time.deltaTime;
+                 }
+             }
 
-            // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
-            if (_verticalVelocity < _terminalVelocity)
-            {
-                _verticalVelocity += Gravity * Time.deltaTime;
-            }
+             // apply gravity over time if under terminal (multiply by delta time twice to linearly speed up over time)
+             if (_verticalVelocity < _terminalVelocity)
+             {
+                 _verticalVelocity += Gravity * Time.deltaTime;
+             }
         }
 
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)

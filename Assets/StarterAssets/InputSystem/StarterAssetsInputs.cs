@@ -12,6 +12,7 @@ namespace StarterAssets
 		public Vector2 look;
 		public bool jump;
 		public bool sprint;
+		public bool interactionRequested;
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
@@ -23,6 +24,7 @@ namespace StarterAssets
 #if ENABLE_INPUT_SYSTEM
 		public void OnMove(InputValue value)
 		{
+			
 			MoveInput(value.Get<Vector2>());
 		}
 
@@ -42,6 +44,10 @@ namespace StarterAssets
 		public void OnSprint(InputValue value)
 		{
 			SprintInput(value.isPressed);
+		}
+		public void OnInteract(InputValue value)
+		{
+			InteractInput(value.isPressed);
 		}
 #endif
 
@@ -64,6 +70,10 @@ namespace StarterAssets
 		public void SprintInput(bool newSprintState)
 		{
 			sprint = newSprintState;
+		}
+		private void InteractInput(bool isRequested)
+		{
+			interactionRequested = isRequested;
 		}
 
 		private void OnApplicationFocus(bool hasFocus)
