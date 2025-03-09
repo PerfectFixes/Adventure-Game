@@ -1,17 +1,19 @@
 using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PuzzleInteraction : MonoBehaviour
 {
     private Canvas interactCanvas;
-    private bool hasInteracted = false;
+    public bool hasInteracted = false;
     
     [SerializeField]
     private PlayerStateControl playerStateControl;
     
     [SerializeField]
     private PlayerStateControl.PlayerState puzzleType;
-
+    
+   
     private void Awake()
     {
         interactCanvas = GetComponentInChildren<Canvas>();
@@ -24,10 +26,13 @@ public class PuzzleInteraction : MonoBehaviour
         {
             return;
         }
-        hasInteracted = true;
         playerStateControl.SetPlayerState(puzzleType);
     }
 
+    public void PuzzleComplete()
+    {
+        hasInteracted = true;
+    }
     public void DisplayUI()
     {
         interactCanvas.gameObject.SetActive(true);
