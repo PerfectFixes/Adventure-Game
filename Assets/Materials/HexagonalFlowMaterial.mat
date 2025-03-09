@@ -146,7 +146,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BackgroundColor: {r: 0.21383637, g: 0.20912927, b: 0.20912927, a: 1}
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 0.58176094, g: 0.92987037, b: 1, a: 1}
     - _BorderColor: {r: 0.7, g: 0.85, b: 0.9, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Color1: {r: 0.09999997, g: 0.29999998, b: 0.5, a: 1}

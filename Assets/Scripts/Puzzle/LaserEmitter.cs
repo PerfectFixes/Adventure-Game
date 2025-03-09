@@ -65,7 +65,6 @@ public class LaserEmitter : MonoBehaviour
         
         // Count the total number of deflectors in the scene
         totalDeflectorsInScene = FindObjectsOfType<LaserDeflector>().Length;
-        Debug.Log("Found " + totalDeflectorsInScene + " deflectors in the scene.");
         
         // Check if we have a default material
         if (defaultLaserMaterial == null)

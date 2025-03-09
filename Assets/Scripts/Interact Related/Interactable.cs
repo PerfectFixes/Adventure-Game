@@ -31,6 +31,7 @@ public class Interactable : MonoBehaviour
     }
     public void InteractExit()
     {
+        isPlayerTouching = false;
         OnInteractExit?.Invoke();
     }
     public void Interact()
