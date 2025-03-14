@@ -57,6 +57,8 @@ public class DiceCombinationPuzzleManager : MonoBehaviour
     
     [SerializeField]
     private UnityEvent puzzleCompleted;
+
+    private bool isCheckOnCooldown;
     
     private void Awake()
     {
@@ -163,7 +165,11 @@ public class DiceCombinationPuzzleManager : MonoBehaviour
             {
                 StopCoroutine(checkCoroutine);
             }
-            
+
+            if (isCheckOnCooldown)
+            {
+                return;
+            }
             // Start a new check
             checkCoroutine = StartCoroutine(CheckCombination());
         }
@@ -178,7 +184,10 @@ public class DiceCombinationPuzzleManager : MonoBehaviour
             {
                 StopCoroutine(checkCoroutine);
             }
-            
+            if (isCheckOnCooldown)
+            {
+                return;
+            }
             // Start a new check
             checkCoroutine = StartCoroutine(CheckCombination());
         }
@@ -376,6 +385,8 @@ public class DiceCombinationPuzzleManager : MonoBehaviour
         // {
         //     EnableDicePuzzleState();
         // }
+        
+       
     }
     
     private void ShowEffect(Transform dieTransform, bool isCorrect)
@@ -413,6 +424,7 @@ public class DiceCombinationPuzzleManager : MonoBehaviour
     
     private void OnEnable()
     {
+        StartCoroutine(AddCooldownForStartCheck());
         if (inputSystemInitialized && actionMap != null)
         {
             actionMap.Enable();
@@ -442,12 +454,12 @@ public class DiceCombinationPuzzleManager : MonoBehaviour
     }
     
     private void OnDisable()
-    {
-        if (inputSystemInitialized && actionMap != null)
-        {
-            actionMap.Disable();
-        }
-    }
+       {
+           if (inputSystemInitialized && actionMap != null)
+           {
+               actionMap.Disable();
+           }
+       }
     
     private void OnDestroy()
     {
@@ -464,5 +476,13 @@ public class DiceCombinationPuzzleManager : MonoBehaviour
         isPuzzleSolved = false;
         isCheckingCombination = false;
         EnableDicePuzzleState();
+    }
+    IEnumerator AddCooldownForStartCheck()
+    {
+        print("Adding cooldown for start check");
+        isCheckOnCooldown = true;
+        yield return new WaitForSeconds(2f);
+        print("Can start checking");
+        isCheckOnCooldown = false;
     }
 }

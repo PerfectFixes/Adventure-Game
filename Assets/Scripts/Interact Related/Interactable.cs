@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -14,6 +16,13 @@ public class Interactable : MonoBehaviour
     
     
     private bool isPlayerTouching = false;
+    
+    private bool isInteracting = true;
+
+    private void Awake()
+    {
+        isInteracting = false;
+    }
 
     public void PlayerTouch()
     {
@@ -36,7 +45,20 @@ public class Interactable : MonoBehaviour
     }
     public void Interact()
     {
+        if (isInteracting)
+        {
+            return;
+        }
+       
         //the ? means a null check for onInteract, (if onInteract != null)
         onInteract?.Invoke();
+        StartCoroutine(AddInteractionCooldown());
+    }
+
+    IEnumerator AddInteractionCooldown()
+    {
+        isInteracting = true;
+        yield return new WaitForSeconds(2f);
+        isInteracting = false;
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -56,6 +57,8 @@ public class DieController : MonoBehaviour
     private Vector2 moveInput = Vector2.zero;
     private Vector2 moveInputPrev = Vector2.zero;
     private Vector2 changeValueInput = Vector2.zero;
+    
+
     
     private void Awake()
     {
@@ -134,8 +137,8 @@ public class DieController : MonoBehaviour
             if (actionMap != null)
             {
                 // Find the necessary actions
-                moveAction = actionMap.FindAction("move");
-                changeValueAction = actionMap.FindAction("changeValue");
+                moveAction = actionMap.FindAction("Move");
+                changeValueAction = actionMap.FindAction("ChangeValue");
                 printAction = actionMap.FindAction("Print");
                 
                 // Register callbacks
@@ -491,7 +494,8 @@ public class DieController : MonoBehaviour
         InputActionMap actionMap = inputActions?.FindActionMap("Gameplay");
         if (actionMap != null) actionMap.Enable();
     }
-    
+
+
     private void OnDisable()
     {
         // Disable input actions if they exist
