@@ -31,10 +31,15 @@ public class PuzzleInteraction : MonoBehaviour
 
     public void PuzzleComplete()
     {
+        HideUI();
         hasInteracted = true;
     }
     public void DisplayUI()
     {
+        if (hasInteracted)
+        {
+            return;
+        }
         interactCanvas.gameObject.SetActive(true);
     }
 
