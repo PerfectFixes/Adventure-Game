@@ -8,6 +8,7 @@ TagManager:
   - CinemachineTarget
   - Laser
   - Laser Emitter
+  - MazePlatform
   layers:
   - Default
   - TransparentFX

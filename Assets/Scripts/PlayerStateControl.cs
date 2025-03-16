@@ -19,6 +19,7 @@ public class PlayerStateControl : MonoBehaviour
         Moving,
         LaserPuzzle,
         DicePuzzle,
+        MazePuzzle,
         // Add more puzzle states here
     }
 
